@@ -30,7 +30,7 @@ def retrieve_status(client, source):
     except Exception as e:
         logger.debug(e)
     finally:
-        return source, status
+        return source, status, response
 
 
 @asyncio.coroutine

@@ -204,11 +204,22 @@ def follow(ctx, nick, url, force):
             click.confirm("➤ You’re already following {0}. Overwrite?".format(
                 click.style(source.nick, bold=True)), default=False, abort=True)
 
-        _, status = get_remote_status([source])[0]
-        if status != 200:
-            click.confirm("➤ The feed of {0} at {1} is not available. Follow anyway?".format(
-                click.style(source.nick, bold=True),
-                click.style(source.url, bold=True)), default=False, abort=True)
+        while True:
+            _, status, response = get_remote_status([source])[0]
+            if status == 301 or status == 302 or status == 303 or status == 307 or status == 308:
+                newurl = response.headers["LOCATION"]
+                click.confirm("➤ The feed of {0} at {1} redirects to {2}. Follow anyway?".format(
+                    click.style(source.nick, bold=True), click.style(source.url, bold=True),
+                    click.style(newurl, bold=True)),
+                    default=True, abort=True)
+
+                source.url = newurl
+                continue
+            elif status != 200:
+                click.confirm("➤ The feed of {0} at {1} is not available. Follow anyway?".format(
+                    click.style(source.nick, bold=True),
+                    click.style(source.url, bold=True)), default=False, abort=True)
+            break
 
     ctx.obj['conf'].add_source(source)
     click.echo("✓ You’re now following {0}.".format(
