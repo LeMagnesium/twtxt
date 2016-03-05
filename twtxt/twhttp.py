@@ -12,6 +12,8 @@ import asyncio
 import logging
 
 import aiohttp
+import ssl
+import click
 
 from twtxt.cache import Cache
 from twtxt.helper import generate_user_agent
@@ -27,6 +29,9 @@ def retrieve_status(client, source):
         response = yield from client.head(source.url)
         status = response.status
         yield from response.release()
+    except ssl.CertificateError:
+        click.echo(("✗ {0} : the website's SSL certificate is untrusted. Try using HTTP, " +
+            "or contact the site's administrator to report the issue").format(click.style("SSL Error", bold = True, fg = "red")))
     except Exception as e:
         logger.debug(e)
     finally:
